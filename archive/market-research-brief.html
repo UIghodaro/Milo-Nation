@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Research Brief — Hackathon 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #222222;
+    --text: #e8e4dc;
+    --muted: #666;
+    --p1: #e8c547;
+    --p2: #4fc4cf;
+    --p3: #f47c6a;
+    --accent: #e8c547;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 3rem;
+    display: flex;
+    align-items: baseline;
+    gap: 2rem;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  header .tag {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem;
+  }
+
+  .intro {
+    margin-bottom: 3rem;
+    max-width: 700px;
+  }
+
+  .intro p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.8;
+  }
+
+  /* Problem sections */
+  .problem-section {
+    margin-bottom: 4rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .problem-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .problem-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    line-height: 1;
+    opacity: 0.15;
+  }
+
+  .p1 .problem-num { color: var(--p1); opacity: 1; }
+  .p2 .problem-num { color: var(--p2); opacity: 1; }
+  .p3 .problem-num { color: var(--p3); opacity: 1; }
+
+  .problem-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .difficulty-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    border-radius: 1px;
+    border: 1px solid;
+  }
+
+  .p1 .difficulty-badge { color: var(--p1); border-color: var(--p1); }
+  .p2 .difficulty-badge { color: var(--p2); border-color: var(--p2); }
+  .p3 .difficulty-badge { color: var(--p3); border-color: var(--p3); }
+
+  .problem-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+
+  .column {
+    padding: 2rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .column:last-child { border-right: none; }
+
+  .col-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .customer-card {
+    margin-bottom: 1rem;
+  }
+
+  .customer-type {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    color: var(--text);
+  }
+
+  .customer-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .pain-item {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+  }
+
+  .pain-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .p1 .pain-dot { background: var(--p1); }
+  .p2 .pain-dot { background: var(--p2); }
+  .p3 .pain-dot { background: var(--p3); }
+
+  .pain-text {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .pain-text strong {
+    color: var(--text);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.1rem;
+    font-size: 0.78rem;
+  }
+
+  .app-idea {
+    margin-bottom: 0.8rem;
+    padding: 0.8rem 1rem;
+    background: #161616;
+    border-left: 2px solid;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .p1 .app-idea { border-color: var(--p1); }
+  .p2 .app-idea { border-color: var(--p2); }
+  .p3 .app-idea { border-color: var(--p3); }
+
+  .app-idea-title {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+
+  .app-idea-desc {
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Summary bar */
+  .summary {
+    margin-top: 4rem;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    background: #0d0d0d;
+  }
+
+  .summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .summary-card {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+  }
+
+  .summary-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .p1-score { color: var(--p1); }
+  .p2-score { color: var(--p2); }
+  .p3-score { color: var(--p3); }
+
+  .summary-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.8rem;
+  }
+
+  .summary-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+  }
+
+  .metric-label { color: var(--muted); }
+
+  .metric-bar-wrap {
+    width: 80px;
+    height: 3px;
+    background: #1a1a1a;
+    border-radius: 2px;
+  }
+
+  .metric-bar {
+    height: 100%;
+    border-radius: 2px;
+  }
+
+  .p1 .metric-bar { background: var(--p1); }
+  .p2 .metric-bar { background: var(--p2); }
+  .p3 .metric-bar { background: var(--p3); }
+
+  .winner-tag {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--p3);
+    border: 1px solid var(--p3);
+    padding: 0.2rem 0.6rem;
+  }
+
+  @media (max-width: 900px) {
+    .problem-body { grid-template-columns: 1fr; }
+    .column { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-grid { grid-template-columns: 1fr; }
+    .container { padding: 1.5rem; }
+    header { padding: 1.5rem; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-label">Hackathon Market Research</div>
+    <h1>Customer Intelligence Brief</h1>
+  </div>
+  <div class="tag">Feb 2026 · 3 Problem Spaces</div>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    <p>Research synthesized from Deloitte, Slush Startup Survey 2025, PYMNTS, and industry reports. Each problem space mapped against: target customers, key pain gaps, and opportunity applications.</p>
+  </div>
+
+  <!-- PROBLEM 1 -->
+  <div class="problem-section p1">
+    <div class="problem-header">
+      <div class="problem-num">01</div>
+      <div class="problem-title">Financial Data → Decision Making</div>
+      <div class="difficulty-badge">High Technical Bar</div>
+    </div>
+    <div class="problem-body">
+      <div class="column">
+        <div class="col-label">Target Customers</div>
+
+        <div class="customer-card">
+          <div class="customer-type">FP&A Analysts & Finance Teams</div>
+          <div class="customer-desc">Mid-market companies (50–5,000 employees) drowning in manual Excel workflows. Spend 80% of time on data prep, 20% on actual analysis.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Portfolio Managers & Investment Analysts</div>
+          <div class="customer-desc">Hedge funds, family offices, and independent RIAs who need multi-source signal aggregation without Bloomberg-level cost ($20k+/yr).</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">SMB Owners & Operators</div>
+          <div class="customer-desc">Revenue $500k–$10M. Making pricing, hiring, and inventory decisions without a finance team. Flying blind on forward-looking data.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Risk & Compliance Officers</div>
+          <div class="customer-desc">Banks and fintechs required to aggregate risk data under BCBS 239. Data quality and timeliness are regulatory obligations, not just preferences.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Non-profit & Government Budget Officers</div>
+          <div class="customer-desc">Constrained to free/cheap tools but dealing with complex, multi-fund accounting and grant tracking that commercial tools handle poorly.</div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Key Gaps & Pain Points</div>
+
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Data Access Latency</strong>
+            90%+ of bank data users say data they need is unavailable or too slow to retrieve (Deloitte 2024). Reporting cycles of 1–2 weeks are standard.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Excel Hell Persists</strong>
+            Finance teams still live in Excel despite ERP adoption. Manual export → transform → model cycles introduce errors and kill analysis time.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Siloed Data Architecture</strong>
+            CRM, ERP, banking, and marketing data never talk to each other. Unified financial view requires expensive enterprise tooling (SAP, Oracle).
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>No Accessible Scenario Planning</strong>
+            Only 16% of FP&A teams can run scenarios in under a day. 20% can't run them at all. Most tools are either too simple or too complex.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Insight ≠ Action</strong>
+            Dashboards show what happened. Nothing tells you what to do next. The gap between data and decision remains filled by expensive consultants.
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Application Opportunities</div>
+
+        <div class="app-idea">
+          <div class="app-idea-title">AI Scenario Engine for SMBs</div>
+          <div class="app-idea-desc">Natural language interface: "What happens to my margins if cost of goods rises 12%?" Connects to real bank data. No finance degree required.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Multi-source Signal Aggregator</div>
+          <div class="app-idea-desc">Pulls market data, industry benchmarks, and internal financials into a single view with anomaly alerts. Bloomberg Lite for the 99%.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Opportunity Detector</div>
+          <div class="app-idea-desc">Identifies patterns across financial data (receivables, inventory cycles, industry signals) and surfaces specific, timed decisions: "Renegotiate lease in Q2."</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Live Excel Sync Layer</div>
+          <div class="app-idea-desc">Bridge between ERP data and Excel — auto-populates models with live data. Kills the export-transform loop without replacing existing workflows.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 2 -->
+  <div class="problem-section p2">
+    <div class="problem-header">
+      <div class="problem-num">02</div>
+      <div class="problem-title">Personal Finance Management & Access</div>
+      <div class="difficulty-badge">Crowded Market</div>
+    </div>
+    <div class="problem-body">
+      <div class="column">
+        <div class="col-label">Target Customers</div>
+
+        <div class="customer-card">
+          <div class="customer-type">The Financial Anxiety Majority</div>
+          <div class="customer-desc">60% of consumers experience financial anxiety. Only 37% use advanced budgeting tools. The 63% gap is massive — they want help but won't open another app.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Gig Workers & Irregular Income Earners</div>
+          <div class="customer-desc">Uber drivers, freelancers, contractors, seasonal workers globally. Traditional budgeting tools assume monthly salary. Their income is lumpy, unpredictable, variable.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Financially Excluded Adults</div>
+          <div class="customer-desc">1.4 billion adults globally unbanked. Can't access credit, insurance, or savings products. Mobile-first populations in SE Asia, Africa, Latin America.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">New-to-Country Immigrants</div>
+          <div class="customer-desc">No credit history in new country. Face systemic barriers to financial products despite economic stability in home country. Invisible to traditional credit scoring.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Post-Mint Refugees (US)</div>
+          <div class="customer-desc">Millions displaced after Mint shut down in 2024. Still searching for a replacement with similar simplicity. High acquisition opportunity, clear need.</div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Key Gaps & Pain Points</div>
+
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>One-Size-Fits-All Tools</strong>
+            Apps built for salaried, banked, English-speaking users. Gig workers, immigrants, and low-income earners are afterthoughts, not primary design targets.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Engagement Collapse</strong>
+            Users open budgeting apps in crisis, abandon them in 2 weeks. No mechanism to stay useful when finances feel stable. Engagement is reactive, not habitual.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Knowledge Gap, Not Tool Gap</strong>
+            Many users don't lack a budgeting app — they lack financial literacy. They don't know what to do with the data the app shows them. Insight without context is useless.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Trust & Privacy Barrier</strong>
+            Users reluctant to share banking credentials. CFPB finalized open banking rules Oct 2024 — still building consumer trust in data sharing. Especially acute in non-Western markets.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Credit Invisibility</strong>
+            Billions of people have real financial behavior (rent, phone, utilities) but no formal credit score. They're locked out of financial services that could transform their lives.
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Application Opportunities</div>
+
+        <div class="app-idea">
+          <div class="app-idea-title">Gig Income Smoother</div>
+          <div class="app-idea-desc">Automatically holds and releases income to simulate stable monthly salary. Handles tax set-asides, smooths variable cash flow. Built for the irregular earner.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Alternative Credit Builder</div>
+          <div class="app-idea-desc">Uses rent, subscriptions, utilities, and phone payments to build credit profiles for the unscored. Could unlock mortgages, loans, and insurance for billions.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Employer Embedded Finance</div>
+          <div class="app-idea-desc">Financial wellness delivered through employers — not as an app people download, but as a benefit. Harvard research shows employees spend 8hrs/week on money stress at work.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Conversation-first Financial Coach</div>
+          <div class="app-idea-desc">AI that explains what your financial data means, not just shows it. "Your subscriptions increased 40% — here's what to cut." Action, not charts.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM 3 -->
+  <div class="problem-section p3">
+    <div class="problem-header">
+      <div class="problem-num">03</div>
+      <div class="problem-title">Tools to Aid Startup Creation</div>
+      <div class="difficulty-badge">Best Differentiation</div>
+    </div>
+    <div class="problem-body">
+      <div class="column">
+        <div class="col-label">Target Customers</div>
+
+        <div class="customer-card">
+          <div class="customer-type">First-time Founders (Pre-idea or Idea Stage)</div>
+          <div class="customer-desc">No playbook. Don't know what they don't know. Wasting weeks on validation that could take days. Often build before confirming anyone wants it.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Solo Founders (35% of all startups, only 17% get VC)</div>
+          <div class="customer-desc">Wearing every hat — product, marketing, legal, finance, HR. Structurally disadvantaged vs. multi-founder teams despite no evidence they perform worse.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Non-technical Founders</div>
+          <div class="customer-desc">Great domain expertise, no developer skills. Can't scope an MVP, can't evaluate developer quotes, can't protect themselves from tech debt and agency overscoping.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Repeat Founders in New Domains</div>
+          <div class="customer-desc">Know how to build companies, but entering unfamiliar verticals (e.g., a SaaS founder going into biotech). Need domain-specific intelligence quickly.</div>
+        </div>
+        <div class="customer-card">
+          <div class="customer-type">Accelerator & Incubator Cohort Members</div>
+          <div class="customer-desc">Intensive programs with 90-day timelines. Need to move from concept to investor-ready in weeks. Mentorship is sparse; tools that scale mentor wisdom are high value.</div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Key Gaps & Pain Points</div>
+
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Fundraising Paradox</strong>
+            58% of founders cite fundraising as #1 challenge (Slush 2025). To raise, you need growth. Growth requires capital. The loop is hard to break without warm network access.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Conversion Gap in Sales</strong>
+            68% of founders find prospects easily. Only 30% can convert them. Finding customers is solved. Closing them — especially in B2B — is not.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Over 60% Underestimate Operational Complexity</strong>
+            "More hats than expected" is universal. Founders burn out managing legal, HR, finance, and ops with no playbook or sequencing guide.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Validation Theater vs. Real PMF</strong>
+            Founders build, launch, and call it "validated" based on friends saying "cool idea." No structured, fast process for getting real signal before building.
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-dot"></div>
+          <div class="pain-text">
+            <strong>Investor Signal Blindness</strong>
+            Founders don't know what investors actually see when they review a deck. No feedback loop until rejection, which comes with no explanation.
+          </div>
+        </div>
+      </div>
+
+      <div class="column">
+        <div class="col-label">Application Opportunities</div>
+
+        <div class="app-idea">
+          <div class="app-idea-title">Idea Validation Engine</div>
+          <div class="app-idea-desc">Structured framework that takes a startup concept and returns real signal: competitive landscape, demand proxies, target customer archetypes, and kill risks — in minutes.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Investor Readiness Simulator</div>
+          <div class="app-idea-desc">Upload your pitch deck, get back an investor's perspective: what questions they'll ask, what they'll challenge, what's missing. Trained on real investor frameworks.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Founder Operating System</div>
+          <div class="app-idea-desc">Stage-gated task sequencer for the first 12 months. Tells you what to do next based on your company stage — not a generic checklist, a dynamic decision tree.</div>
+        </div>
+        <div class="app-idea">
+          <div class="app-idea-title">Solo Founder Co-pilot</div>
+          <div class="app-idea-desc">AI that fills the co-founder gap: challenges assumptions, plays devil's advocate, holds the founder accountable, and provides the external perspective a solo founder lacks.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY SCORECARD -->
+  <div class="summary">
+    <div class="summary-label">Competitive Scorecard — Hackathon Context</div>
+    <div class="summary-grid">
+
+      <div class="summary-card p1">
+        <div class="summary-score p1-score">P1</div>
+        <div class="summary-title">Financial Data → Decisions</div>
+        <div class="summary-metrics">
+          <div class="metric-row">
+            <span class="metric-label">Market Size</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:90%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Differentiation</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:65%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Build Feasibility</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:45%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Judge Resonance</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:70%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p2">
+        <div class="summary-score p2-score">P2</div>
+        <div class="summary-title">Personal Finance & Access</div>
+        <div class="summary-metrics">
+          <div class="metric-row">
+            <span class="metric-label">Market Size</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:95%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Differentiation</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:40%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Build Feasibility</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:70%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Judge Resonance</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:55%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card p3">
+        <div class="summary-score p3-score">P3</div>
+        <div class="summary-title">Startup Creation Tools</div>
+        <div class="summary-metrics">
+          <div class="metric-row">
+            <span class="metric-label">Market Size</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:65%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Differentiation</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:85%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Build Feasibility</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:85%"></div></div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Judge Resonance</span>
+            <div class="metric-bar-wrap"><div class="metric-bar" style="width:90%"></div></div>
+          </div>
+        </div>
+        <div class="winner-tag">↑ Recommended</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
