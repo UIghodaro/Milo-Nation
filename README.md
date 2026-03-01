@@ -66,3 +66,17 @@ icp-definition → positioning-messaging → channel-strategy → launch
 ```
 
 **Rule:** When in doubt, go back one phase. Moving forward before the current phase is resolved is the most common solo founder mistake.
+
+---
+
+## Running the app (Founder OS frontend)
+
+```bash
+npm install
+cp .env.example .env.local   # then edit .env.local and add your Anthropic API key
+npm run dev
+```
+
+Open http://localhost:5173/. The app uses a localStorage-backed storage polyfill when `window.storage` is not provided (e.g. in the browser).
+
+**Claude API:** To use live AI in module chats (instead of mock responses), add your Anthropic API key to `.env.local` as `VITE_ANTHROPIC_API_KEY=sk-ant-...`. Get a key from [console.anthropic.com](https://console.anthropic.com/). `.env.local` is gitignored and not committed.

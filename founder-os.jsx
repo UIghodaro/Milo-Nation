@@ -1,317 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-
-/* ═══════════════════════════════════════════════════════════════════
-   FOUNDER OS — Complete MVP
-   Palette: #2d232e (bg) · #f1f0ea (text) · #e0ddcf · #534b52 · #474448
-   Font: Instrument Serif + DM Sans
-   ═══════════════════════════════════════════════════════════════════ */
-
-const C = {
-  bg: "#474448",
-  text: "#f1f0ea",
-  surface: "#e0ddcf",
-  muted: "#534b52",
-  accent: "#3a3638",
-  card: "#3d393f",
-  cardHover: "#524e53",
-  border: "#5e5a60",
-  borderLight: "#6e6a70",
-  success: "#6b9e6b",
-  successBg: "#2a3d2a",
-  warn: "#c4a24e",
-  warnBg: "#3d3520",
-  danger: "#c45858",
-  dangerBg: "#3d2020",
-  blue: "#6b8eb0",
-  blueBg: "#1e2d3d",
-  purple: "#8b7bb0",
-  purpleBg: "#2d253d",
-  white: "#ffffff",
-  textDim: "#a09a9e",
-  textMuted: "#7a7280",
-};
-
-const F = {
-  serif: "'Instrument Serif', Georgia, serif",
-  sans: "'DM Sans', 'Helvetica Neue', sans-serif",
-  mono: "'JetBrains Mono', monospace",
-};
-
-// ─── Track & Module Taxonomy ──────────────────────────────
-const TRACKS = [
-  {
-    id: "ideation", name: "Ideation", icon: "💡", order: 1,
-    desc: "Crystallize your idea into a validated hypothesis worth building on.",
-    modules: [
-      { id: "problem-identification", name: "Problem Identification", desc: "Define and deeply understand the core problem you're solving" },
-      { id: "market-sizing", name: "Market Sizing", desc: "Quantify your TAM, SAM, and SOM to understand the opportunity" },
-      { id: "competitive-analysis", name: "Competitive Analysis", desc: "Map the landscape and find your positioning gap" },
-      { id: "hypothesis-formation", name: "Hypothesis Formation", desc: "Turn assumptions into testable, falsifiable hypotheses" },
-    ],
-  },
-  {
-    id: "validation", name: "Validation", icon: "✓", order: 2,
-    desc: "Test your hypotheses with real humans before writing a line of code.",
-    modules: [
-      { id: "customer-discovery", name: "Customer Discovery", desc: "Find and talk to real potential customers" },
-      { id: "problem-validation", name: "Problem Validation", desc: "Confirm the problem is real, frequent, and painful enough" },
-      { id: "willingness-to-pay", name: "Willingness to Pay", desc: "Test whether customers will actually pay for a solution" },
-      { id: "assumption-testing", name: "Assumption Testing", desc: "Systematically validate or invalidate your key assumptions" },
-    ],
-  },
-  {
-    id: "mvp-build", name: "MVP / Build", icon: "⚙", order: 3,
-    desc: "Scope, build, and ship the smallest thing that proves your thesis.",
-    modules: [
-      { id: "scope-definition", name: "Scope Definition", desc: "Define exactly what's in (and out) of your MVP" },
-      { id: "build-decision", name: "Build Decision", desc: "Choose build vs. buy vs. no-code based on your constraints" },
-      { id: "success-metrics", name: "Success Metrics", desc: "Define measurable outcomes that prove your MVP works" },
-    ],
-  },
-  {
-    id: "business-model", name: "Business Model", icon: "◈", order: 4,
-    desc: "Design a business model that captures the value you create.",
-    modules: [
-      { id: "monetisation-model", name: "Monetisation Model", desc: "Choose how you'll make money and why it fits your market" },
-      { id: "unit-economics", name: "Unit Economics", desc: "Model your per-customer economics: LTV, CAC, margins" },
-      { id: "pricing", name: "Pricing", desc: "Set a price that reflects value and drives conversion" },
-    ],
-  },
-  {
-    id: "early-traction", name: "Early Traction", icon: "↗", order: 5,
-    desc: "Get your first users and learn what makes them stick.",
-    modules: [
-      { id: "user-acquisition", name: "User Acquisition", desc: "Find and attract your first 10–100 users" },
-      { id: "manual-onboarding", name: "Manual Onboarding", desc: "Onboard users by hand to learn what they actually need" },
-      { id: "retention-analysis", name: "Retention Analysis", desc: "Measure whether users come back and why (or why not)" },
-      { id: "activation", name: "Activation", desc: "Identify and optimize the moment users first get value" },
-    ],
-  },
-  {
-    id: "gtm", name: "Go-to-Market", icon: "🚀", order: 6,
-    desc: "Position, message, and launch your product to the right audience.",
-    modules: [
-      { id: "icp-definition", name: "ICP Definition", desc: "Nail your ideal customer profile with surgical precision" },
-      { id: "positioning-messaging", name: "Positioning & Messaging", desc: "Craft a narrative that makes your product impossible to ignore" },
-      { id: "channel-strategy", name: "Channel Strategy", desc: "Decide where and how to reach your ICP cost-effectively" },
-      { id: "launch", name: "Launch", desc: "Plan and execute a launch that generates signal, not noise" },
-    ],
-  },
-];
-
-const TASK_TAGS = ["Research", "Validation", "Strategy", "Analysis", "Interviews", "Docs", "Planning", "Design", "Outreach", "Build", "Growth", "Legal"];
-
-// ─── Storage ─────────────────────────────────────────────
-const SK = {
-  onboarded: "fos4-onboarded",
-  context: "fos4-context",
-  contextMD: "fos4-contextmd",
-  trackOrder: "fos4-trackorder",
-  trackSetup: "fos4-tracksetup",
-  trackModules: "fos4-trackmods",
-  trackDocs: "fos4-trackdocs",
-  trackContextMDs: "fos4-trackcmds",
-  trackMemory: "fos4-trackmem",
-  trackProgress: "fos4-trackprog",
-  kanban: "fos4-kanban",
-  notes: "fos4-notes",
-  chatHistories: "fos4-chats",
-  moduleOutputs: "fos4-modouts",
-};
-
-async function sGet(k) { try { const r = await window.storage.get(k); return r ? JSON.parse(r.value) : null; } catch { return null; } }
-async function sSet(k, v) { try { await window.storage.set(k, JSON.stringify(v)); } catch {} }
-
-// ─── AI Helpers ──────────────────────────────────────────
-async function callAI(messages, system) {
-  try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, system, messages: messages.map(m => ({ role: m.role, content: m.content })) }),
-    });
-    const data = await res.json();
-    const txt = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "";
-    try { return JSON.parse(txt.replace(/```json\n?|```\n?/g, "").trim()); } catch { return { message: txt }; }
-  } catch { return null; }
-}
-
-function mockChat(phase, moduleName) {
-  if (phase === "plan") return {
-    message: `Great, let's plan your approach to **${moduleName}**.\n\nHere's what I recommend:\n\n**1. Frame your key questions** — What specifically do you need to learn?\n\n**2. Choose your method** — Interviews, surveys, desk research, or a combination.\n\n**3. Set a deadline** — Time-box this to 1–2 weeks maximum.\n\nWant me to help you get started with any of these?`,
-    suggestions: ["Help me frame key questions", "What methods work best here?", "Create a 2-week plan"]
-  };
-  return {
-    message: `Let's produce something concrete for **${moduleName}**.\n\nI can help you create:\n\n📋 **Structured brief** — A template with all the right sections\n📊 **Analysis document** — Organize and synthesize your findings\n🎯 **Decision framework** — A clear framework for making decisions\n\nWhich would be most useful right now?`,
-    suggestions: ["Generate a brief template", "Help me analyze findings", "Create a decision framework"]
-  };
-}
-
-// ─── Logo SVG ────────────────────────────────────────────
-function Logo({ size = 32, showText = true, light = false }) {
-  const color = light ? C.text : C.text;
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, cursor: "default" }}>
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="46" stroke={color} strokeWidth="5" fill="none"/>
-        <path d="M50 72 C50 72 50 45 50 38 C50 28 42 22 32 26 C28 28 25 33 25 38 C25 48 35 52 42 48" stroke={color} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        <path d="M50 55 C50 55 50 42 55 35 C60 28 70 28 73 33 C76 38 73 46 66 48 C59 50 54 46 54 42" stroke={color} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      </svg>
-      {showText && <span style={{ fontFamily: F.serif, fontSize: size * 0.6, fontWeight: 400, color, letterSpacing: "-0.02em" }}>Founder OS</span>}
-    </div>
-  );
-}
-
-// ─── Toast ───────────────────────────────────────────────
-function Toast({ message, type = "success", onClose }) {
-  useEffect(() => { const t = setTimeout(onClose, 2800); return () => clearTimeout(t); }, [onClose]);
-  const bg = type === "success" ? C.successBg : type === "error" ? C.dangerBg : C.warnBg;
-  const color = type === "success" ? C.success : type === "error" ? C.danger : C.warn;
-  const icon = type === "success" ? "✓" : type === "error" ? "✕" : "⚠";
-  return (
-    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 99999, background: bg, border: `1px solid ${color}44`, color, padding: "10px 18px", borderRadius: 10, fontSize: 13.5, fontWeight: 600, fontFamily: F.sans, display: "flex", alignItems: "center", gap: 8, boxShadow: `0 8px 24px #00000044`, animation: "fadeUp .3s ease" }}>
-      <span>{icon}</span> {message}
-    </div>
-  );
-}
-
-function useToast() {
-  const [toast, setToast] = useState(null);
-  const show = useCallback((message, type = "success") => setToast({ message, type, key: Date.now() }), []);
-  const el = toast ? <Toast key={toast.key} message={toast.message} type={toast.type} onClose={() => setToast(null)} /> : null;
-  return [show, el];
-}
-
-// ─── Shared Components ───────────────────────────────────
-function Styles() {
-  return <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { -webkit-font-smoothing: antialiased; }
-    body { font-family: ${F.sans}; background: ${C.bg}; color: ${C.text}; }
-    ::selection { background: ${C.accent}; color: ${C.text}; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: ${C.muted}; border-radius: 99px; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: ${C.borderLight} !important; box-shadow: 0 0 0 3px ${C.accent}44 !important; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .fade-up { animation: fadeUp .4s ease both; }
-    .card { background: ${C.card}; border: 1px solid ${C.border}; border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
-    .card:hover { border-color: ${C.borderLight}; }
-    .card-lift { transition: transform .2s, box-shadow .2s; cursor: pointer; }
-    .card-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 24px #00000033; }
-    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 20px; border-radius: 8px; font-family: ${F.sans}; font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all .15s; border: none; }
-    .btn-primary { background: ${C.text}; color: ${C.bg}; }
-    .btn-primary:hover { background: ${C.surface}; }
-    .btn-primary:disabled { opacity: .45; cursor: default; }
-    .btn-outline { background: transparent; color: ${C.text}; border: 1px solid ${C.border}; }
-    .btn-outline:hover { background: ${C.card}; border-color: ${C.borderLight}; }
-    .btn-success { background: ${C.success}; color: ${C.white}; border: none; }
-    .btn-success:hover { opacity: .9; }
-    .btn-danger { background: ${C.dangerBg}; color: ${C.danger}; border: 1px solid ${C.danger}33; }
-    .btn-danger:hover { background: #4d2525; }
-    .btn-ghost { background: none; border: none; color: ${C.textDim}; padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; font-family: ${F.sans}; display: inline-flex; align-items: center; gap: 5px; }
-    .btn-ghost:hover { background: ${C.accent}44; color: ${C.text}; }
-    .input { width: 100%; padding: 10px 14px; border: 1px solid ${C.border}; border-radius: 8px; font-family: ${F.sans}; font-size: 14px; color: ${C.text}; background: ${C.card}; transition: all .2s; }
-    .input::placeholder { color: ${C.textMuted}; }
-    textarea.input { resize: vertical; }
-    select.input { cursor: pointer; }
-    .label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: ${C.textMuted}; font-family: ${F.sans}; }
-    .serif { font-family: ${F.serif}; color: ${C.text}; letter-spacing: -.01em; }
-  `}</style>;
-}
-
-function NavBar({ page, go }) {
-  return (
-    <header style={{ position: "sticky", top: 0, zIndex: 100, background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-      <div style={{ maxWidth: 1340, margin: "0 auto", padding: "0 28px", height: 54, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-          <div style={{ cursor: "pointer" }} onClick={() => go("dashboard")}><Logo size={26} /></div>
-          <nav style={{ display: "flex", gap: 2 }}>
-            {[{ id: "dashboard", label: "Roadmap" }, { id: "network", label: "Network" }].map(t => {
-              const active = page === t.id || (page !== "network" && page !== "dashboard" && t.id === "dashboard");
-              return (
-                <button key={t.id} onClick={() => go(t.id)}
-                  style={{ all: "unset", cursor: "pointer", padding: "6px 16px", borderRadius: 7, fontSize: 13.5, fontWeight: active ? 600 : 400, fontFamily: F.sans, color: active ? C.text : C.textMuted, background: active ? C.card : "transparent", transition: "all .15s" }}>
-                  {t.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-        <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.card, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function Badge({ text, variant, small }) {
-  const styles = {
-    high: { bg: C.dangerBg, c: C.danger }, medium: { bg: C.warnBg, c: C.warn }, low: { bg: C.successBg, c: C.success },
-    Research: { bg: C.blueBg, c: C.blue }, Validation: { bg: C.purpleBg, c: C.purple }, Strategy: { bg: C.warnBg, c: C.warn },
-    Analysis: { bg: "#2d3525", c: "#8eb06b" }, Interviews: { bg: C.successBg, c: C.success }, Docs: { bg: C.accent + "44", c: C.textDim },
-    Planning: { bg: C.blueBg, c: C.blue }, Design: { bg: "#3d2535", c: "#b06b8e" }, Outreach: { bg: "#253d35", c: "#6bb08e" },
-    Build: { bg: C.warnBg, c: C.warn }, Growth: { bg: C.successBg, c: C.success }, Legal: { bg: C.purpleBg, c: C.purple },
-    done: { bg: C.successBg, c: C.success }, "in-progress": { bg: C.blueBg, c: C.blue },
-    "not-started": { bg: C.accent + "44", c: C.textMuted }, active: { bg: C.blueBg, c: C.blue },
-  };
-  const s = styles[variant] || { bg: C.accent + "44", c: C.textMuted };
-  return <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: small ? "2px 8px" : "3px 10px", borderRadius: 99, background: s.bg, color: s.c, fontSize: small ? 10 : 11.5, fontWeight: 600, fontFamily: F.sans, whiteSpace: "nowrap" }}>{variant === "done" ? "✓ " : ""}{text}</span>;
-}
-
-function Progress({ value, max, label, h = 6 }) {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  return (
-    <div>
-      {label && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 500, color: C.textDim }}>{label}</span><span style={{ fontSize: 12, fontWeight: 600, color: C.textDim }}>{pct}%</span></div>}
-      <div style={{ height: h, background: C.accent + "66", borderRadius: 99, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: pct === 100 ? C.success : C.blue, borderRadius: 99, transition: "width .5s ease" }} />
-      </div>
-    </div>
-  );
-}
-
-function Dots() {
-  return <div style={{ display: "flex", gap: 5, padding: "6px 0" }}>{[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: C.textMuted, animation: `pulse 1.2s ease infinite`, animationDelay: `${i*.2}s` }}/>)}</div>;
-}
-
-function Spinner({ size = 16 }) {
-  return <div style={{ width: size, height: size, border: `2px solid ${C.border}`, borderTop: `2px solid ${C.text}`, borderRadius: "50%", animation: "spin .6s linear infinite" }} />;
-}
-
-function Modal({ open, onClose, title, wide, children }) {
-  if (!open) return null;
-  return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "#00000066", backdropFilter: "blur(4px)" }}>
-      <div onClick={e => e.stopPropagation()} className="card fade-up" style={{ width: wide ? "min(880px,92vw)" : "min(520px,92vw)", maxHeight: "85vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: `0 20px 50px #00000055` }}>
-        <div style={{ padding: "16px 22px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 className="serif" style={{ fontSize: 18 }}>{title}</h3>
-          <button className="btn-ghost" onClick={onClose} style={{ fontSize: 18, padding: 2 }}>✕</button>
-        </div>
-        <div style={{ padding: 22, overflowY: "auto", flex: 1 }}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function ProgressPie({ pct, size = 80 }) {
-  const r = (size - 8) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (pct / 100) * circ;
-  return (
-    <div style={{ position: "relative", width: size, height: size }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={C.accent + "66"} strokeWidth="6"/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={pct === 100 ? C.success : C.blue} strokeWidth="6" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset .5s ease" }}/>
-      </svg>
-      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, fontFamily: F.sans, color: C.text }}>{pct}%</div>
-    </div>
-  );
-}
+import { C, F, TRACKS, TASK_TAGS, SK } from "./src/constants.js";
+import { sGet, sSet } from "./src/storage.js";
+import { callAI, mockChat } from "./src/ai.js";
+import { Logo, Toast, useToast, Styles, NavBar, Badge, Progress, Dots, Spinner, Modal, ProgressPie } from "./src/components/index.js";
 
 // ═══════════════════════════════════════════════════════════
 // PAGE 1: ONBOARDING — 11 individual questions
@@ -508,8 +199,28 @@ function OnboardingPage({ onComplete }) {
 
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 28px 60px" }}>
         <div style={{ maxWidth: 560, width: "100%" }}>
-          {/* Form card — now ABOVE the progress line */}
-          <div className="card" style={{ padding: "28px 32px", marginBottom: 28 }}>
+          {/* Progress line — above card; white + glow (not green) */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 28 }}>
+            {Array.from({ length: TOTAL }).map((_, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center" }}>
+                <div style={{
+                  width: i <= step ? 10 : 7, height: i <= step ? 10 : 7, borderRadius: "50%",
+                  background: i < step ? "#ffffff" : i === step ? "#ffffff" : "rgba(255,255,255,0.25)",
+                  boxShadow: i <= step ? "0 0 10px rgba(255,255,255,0.6)" : "none",
+                  transition: "all .3s", cursor: i < step ? "pointer" : "default",
+                }} onClick={() => { if (i < step) setStep(i); }} />
+                {i < TOTAL - 1 && <div style={{
+                  width: 16, height: i < step ? 3 : 1.5,
+                  background: i < step ? "#ffffff" : "rgba(255,255,255,0.25)",
+                  boxShadow: i < step ? "0 0 6px rgba(255,255,255,0.5)" : "none",
+                  margin: "0 2px", transition: "all .3s", borderRadius: 2,
+                }} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Form card */}
+          <div className="card" style={{ padding: "28px 32px" }}>
             {steps[step]()}
 
             {/* Nav buttons */}
@@ -525,26 +236,6 @@ function OnboardingPage({ onComplete }) {
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Progress dots — white line with glow on answered */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0 }}>
-            {Array.from({ length: TOTAL }).map((_, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center" }}>
-                <div style={{
-                  width: i <= step ? 10 : 7, height: i <= step ? 10 : 7, borderRadius: "50%",
-                  background: i < step ? C.success : i === step ? "#ffffff" : "rgba(255,255,255,0.25)",
-                  boxShadow: i < step ? `0 0 8px ${C.success}88` : i === step ? "0 0 10px rgba(255,255,255,0.6)" : "none",
-                  transition: "all .3s", cursor: i < step ? "pointer" : "default",
-                }} onClick={() => { if (i < step) setStep(i); }} />
-                {i < TOTAL - 1 && <div style={{
-                  width: 16, height: i < step ? 3 : 1.5,
-                  background: i < step ? C.success : "rgba(255,255,255,0.25)",
-                  boxShadow: i < step ? `0 0 6px ${C.success}66` : "none",
-                  margin: "0 2px", transition: "all .3s", borderRadius: 2,
-                }} />}
-              </div>
-            ))}
           </div>
         </div>
       </div>
@@ -767,7 +458,7 @@ function DashboardPage({ context, contextMD, trackOrder, go, trackSetup, trackPr
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
             {kanban.columns.map(col => (
               <div key={col.id} onDragOver={e => e.preventDefault()} onDrop={() => { if (drag) { moveTask(drag.id, drag.col, col.id); setDrag(null); }}}
-                style={{ background: C.card, borderRadius: 10, padding: 8, minHeight: 160, border: `1px solid ${C.border}` }}>
+                style={{ background: C.card, borderRadius: 10, padding: 8, minHeight: 160, border: `1px solid ${C.border}`, overflow: "hidden" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, paddingBottom: 6, borderBottom: `2px solid ${col.id === "done" ? C.success : col.id === "doing" ? C.blue : C.border}` }}>
                   <span style={{ fontSize: 12.5, fontWeight: 700, color: C.text }}>{col.title}</span>
                   <span style={{ fontSize: 11, color: C.textMuted }}>{col.tasks.length}</span>
@@ -784,8 +475,8 @@ function DashboardPage({ context, contextMD, trackOrder, go, trackSetup, trackPr
                       ) : (
                         <span onDoubleClick={() => setEditText(task.id)} style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, cursor: "text", color: C.text }}>{task.text}</span>
                       )}
-                      <button onClick={() => deleteKTask(task.id, col.id)} style={{ all: "unset", cursor: "pointer", color: C.textMuted, fontSize: 10, opacity: .4, padding: "0 2px" }}
-                        onMouseEnter={e => e.target.style.opacity=1} onMouseLeave={e => e.target.style.opacity=.4}>✕</button>
+                      <button onClick={() => deleteKTask(task.id, col.id)} style={{ all: "unset", cursor: "pointer", color: C.textDim, fontSize: 11, opacity: 0.85, padding: "0 2px" }}
+                        onMouseEnter={e => e.target.style.opacity=1} onMouseLeave={e => e.target.style.opacity=0.85}>✕</button>
                     </div>
                     <div style={{ marginTop: 4 }}>
                       {editTag === task.id ? (
@@ -813,7 +504,7 @@ function DashboardPage({ context, contextMD, trackOrder, go, trackSetup, trackPr
                   </div>
                 ) : (
                   <button onClick={() => setNewTask({ col: col.id, text: "", tag: "Research" })}
-                    style={{ all: "unset", cursor: "pointer", width: "100%", textAlign: "center", padding: 5, borderRadius: 6, border: `1px dashed ${C.border}`, fontSize: 12, color: C.textMuted, marginTop: 4 }}>+ Add</button>
+                    style={{ all: "unset", cursor: "pointer", width: "100%", boxSizing: "border-box", textAlign: "center", padding: 5, borderRadius: 6, border: `1px dashed ${C.border}`, fontSize: 12, color: C.textMuted, marginTop: 4 }}>+ Add</button>
                 )}
               </div>
             ))}
@@ -928,10 +619,55 @@ function TrackSetupPage({ track, context, onComplete }) {
 // ═══════════════════════════════════════════════════════════
 // TRACK DASHBOARD
 // ═══════════════════════════════════════════════════════════
-function TrackDashboardPage({ track, context, go, goModule, selectedModules, moduleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackMemory, contextMDs }) {
+function TrackDashboardPage({ track, context, go, goModule, selectedModules, moduleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackMemory, setTrackMemory, saveTrackMemory, contextMDs, trackContextMDs, setTrackContextMDs, saveTrackContextMDs }) {
   const [editingMD, setEditingMD] = useState(null);
   const [editMDContent, setEditMDContent] = useState("");
+  const docsUploadRef = useRef(null);
+  const memoryUploadRef = useRef(null);
   const enabledModules = track.modules.filter(m => selectedModules.includes(m.id));
+
+  const downloadDoc = (doc) => {
+    const content = doc.content || doc.text || "";
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (doc.title || "document").replace(/\s+/g, "-") + ".md";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const openDoc = (doc) => {
+    const content = doc.content || doc.text || "";
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  };
+  const handleDocsUpload = (e) => {
+    const file = e.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const doc = { id: Date.now().toString(), title: file.name, content: reader.result, type: "Uploaded", module: "-", created: Date.now() };
+      const updated = [...trackDocs, doc];
+      setTrackDocs(updated);
+      saveTrackDocs(updated);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+  const handleMemoryUpload = (e) => {
+    const file = e.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const entry = { id: Date.now().toString(), name: file.name, content: reader.result };
+      const updated = [...trackMemory, entry];
+      setTrackMemory(updated);
+      saveTrackMemory(updated);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
   const totalMods = enabledModules.length;
   const doneMods = enabledModules.filter(m => (moduleProgress[m.id]?.status === "done")).length;
   const pct = totalMods > 0 ? Math.round((doneMods / totalMods) * 100) : 0;
@@ -1005,7 +741,11 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
 
         {/* Docs library — full width */}
         <div className="card fade-up" style={{ padding: "16px 18px", marginBottom: 18 }}>
-          <div className="label" style={{ marginBottom: 8 }}>DOCUMENTATION LIBRARY</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span className="label">DOCUMENTATION LIBRARY</span>
+            <input type="file" ref={docsUploadRef} accept=".md,.txt,text/*" style={{ display: "none" }} onChange={handleDocsUpload} />
+            <button className="btn-outline" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => docsUploadRef.current?.click()}>+ Upload</button>
+          </div>
           {trackDocs.length === 0 ? (
             <div style={{ padding: "20px 0", textAlign: "center", color: C.textMuted, fontSize: 13 }}>No documents yet. Outputs from module chats will appear here.</div>
           ) : (
@@ -1019,11 +759,19 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
                       <div style={{ fontSize: 11, color: C.textMuted }}>{doc.module} · {doc.type}</div>
                     </div>
                   </div>
-                  <button className="btn-ghost" onClick={() => {
-                    const updated = trackDocs.filter(d => d.id !== doc.id);
-                    setTrackDocs(updated);
-                    saveTrackDocs(updated);
-                  }} style={{ fontSize: 11, color: C.danger }}>Delete</button>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {(doc.content != null || doc.text != null) && (
+                      <>
+                        <button className="btn-ghost" onClick={() => openDoc(doc)} style={{ fontSize: 11, color: C.blue }}>Open</button>
+                        <button className="btn-ghost" onClick={() => downloadDoc(doc)} style={{ fontSize: 11, color: C.blue }}>Download</button>
+                      </>
+                    )}
+                    <button className="btn-ghost" onClick={() => {
+                      const updated = trackDocs.filter(d => d.id !== doc.id);
+                      setTrackDocs(updated);
+                      saveTrackDocs(updated);
+                    }} style={{ fontSize: 11, color: C.danger }}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1049,11 +797,19 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
                     </button>
                   </div>
                   {editingMD === md.id ? (
-                    <textarea
-                      value={editMDContent}
-                      onChange={e => setEditMDContent(e.target.value)}
-                      style={{ width: "100%", minHeight: 180, background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "10px 12px", fontSize: 12, fontFamily: F.mono, color: C.text, lineHeight: 1.6, resize: "vertical", outline: "none" }}
-                    />
+                    <>
+                      <textarea
+                        value={editMDContent}
+                        onChange={e => setEditMDContent(e.target.value)}
+                        style={{ width: "100%", minHeight: 180, background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "10px 12px", fontSize: 12, fontFamily: F.mono, color: C.text, lineHeight: 1.6, resize: "vertical", outline: "none" }}
+                      />
+                      {md.id !== "main" && setTrackContextMDs && (
+                        <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                          <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const updated = trackContextMDs.map(m => m.id === md.id ? { ...m, content: editMDContent } : m); setTrackContextMDs(updated); saveTrackContextMDs(updated); setEditingMD(null); }}>Save</button>
+                          <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => setEditingMD(null)}>Cancel</button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div style={{ fontSize: 12, color: C.textDim, marginTop: 2, lineHeight: 1.5, maxHeight: 80, overflow: "hidden" }}>{md.content?.substring(0, 120)}...</div>
                   )}
@@ -1065,7 +821,8 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
           <div className="card fade-up" style={{ padding: "16px 18px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <div className="label">TRACK MEMORY</div>
-              <button className="btn-outline" style={{ fontSize: 11, padding: "3px 8px" }}>+ Upload</button>
+              <input type="file" ref={memoryUploadRef} accept=".md,.txt,text/*" style={{ display: "none" }} onChange={handleMemoryUpload} />
+              <button className="btn-outline" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => memoryUploadRef.current?.click()}>+ Upload</button>
             </div>
             {trackMemory.length === 0 ? (
               <div style={{ padding: "16px 0", textAlign: "center", color: C.textMuted, fontSize: 13 }}>No files uploaded yet.</div>
@@ -1073,7 +830,7 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
               trackMemory.map(f => (
                 <div key={f.id} style={{ padding: "8px 10px", background: C.bg, borderRadius: 6, border: `1px solid ${C.border}`, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
                   <div style={{ fontSize: 13, color: C.text }}>{f.name}</div>
-                  <button className="btn-ghost" style={{ fontSize: 11, color: C.danger }}>✕</button>
+                  <button className="btn-ghost" onClick={() => { const updated = trackMemory.filter(x => x.id !== f.id); setTrackMemory(updated); saveTrackMemory(updated); }} style={{ fontSize: 11, color: C.danger }}>✕</button>
                 </div>
               ))
             )}
@@ -1087,7 +844,7 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
 // ═══════════════════════════════════════════════════════════
 // MODULE CHAT PAGE (Split view)
 // ═══════════════════════════════════════════════════════════
-function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgress, setModuleProgress, saveModuleProgress, trackDocs, setTrackDocs, saveTrackDocs }) {
+function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgress, setModuleProgress, saveModuleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackContextMDs, setTrackContextMDs, saveTrackContextMDs }) {
   const [phase, setPhase] = useState("plan");
   const [chat, setChat] = useState([]);
   const [chatIn, setChatIn] = useState("");
@@ -1158,11 +915,11 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
         `You are creating a concise markdown context file. Output clean markdown with sections for Decisions, Insights, Next Steps, and Deliverables. Respond as JSON: { "message": "the markdown content" }`
       );
       const mdContent = res?.message || `# ${mod.name} Context\n\nNo summary generated.`;
-      const doc = { id: Date.now().toString(), title: `${mod.name} — Context Summary`, content: mdContent, type: "Context MD", module: mod.name, created: Date.now() };
-      const updated = [...trackDocs, doc];
-      setTrackDocs(updated);
-      saveTrackDocs(updated);
-      showToast("Context MD file generated & saved");
+      const doc = { id: Date.now().toString(), title: `${mod.name} — Context Summary`, content: mdContent };
+      const updated = [...(trackContextMDs || []), doc];
+      if (setTrackContextMDs) setTrackContextMDs(updated);
+      if (saveTrackContextMDs) saveTrackContextMDs(updated);
+      showToast("Context MD file generated & saved to Track context files");
     } catch {
       showToast("Failed to generate context file", "error");
     }
@@ -1480,6 +1237,32 @@ function NetworkPage() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// PROFILE PAGE
+// ═══════════════════════════════════════════════════════════
+function ProfilePage({ go }) {
+  return (
+    <div style={{ maxWidth: 1340, margin: "0 auto", padding: "28px" }}>
+      <h1 className="serif" style={{ fontSize: 34, fontWeight: 400 }}>Profile</h1>
+      <p style={{ color: C.textDim, fontSize: 14, marginTop: 4 }}>Your founder profile and settings.</p>
+      <div className="card fade-up" style={{ marginTop: 24, padding: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: C.card, border: `2px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+          </div>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: C.text }}>Founder</div>
+            <div style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Complete your profile to appear in Network search.</div>
+          </div>
+        </div>
+        <div style={{ marginTop: 24 }}>
+          <button className="btn btn-outline" onClick={() => go("dashboard")}>Back to Roadmap</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════
 export default function App() {
@@ -1491,6 +1274,8 @@ export default function App() {
   const [trackModulesSelected, setTrackModulesSelected] = useState({});
   const [moduleProgress, setModuleProgress] = useState({});
   const [trackDocsData, setTrackDocsData] = useState({});
+  const [trackContextMDsData, setTrackContextMDsData] = useState({});
+  const [trackMemoryData, setTrackMemoryData] = useState({});
   const [allNotes, setAllNotes] = useState([]);
   const [kanban, setKanban] = useState({ columns: [
     { id: "todo", title: "To Do", tasks: [] },
@@ -1513,6 +1298,8 @@ export default function App() {
         const tm = await sGet(SK.trackModules); if (tm) setTrackModulesSelected(tm);
         const mp = await sGet(SK.trackProgress); if (mp) setModuleProgress(mp);
         const td = await sGet(SK.trackDocs); if (td) setTrackDocsData(td);
+        const tcm = await sGet(SK.trackContextMDs); if (tcm) setTrackContextMDsData(tcm);
+        const tmem = await sGet(SK.trackMemory); if (tmem) setTrackMemoryData(tmem);
         const n = await sGet(SK.notes); if (n) setAllNotes(n);
         const k = await sGet(SK.kanban); if (k) setKanban(k);
         setPage("dashboard");
@@ -1530,6 +1317,16 @@ export default function App() {
     setTrackDocsData(updated);
     await sSet(SK.trackDocs, updated);
   };
+  const saveTrackContextMDs = async (trackId, mds) => {
+    const updated = { ...trackContextMDsData, [trackId]: mds };
+    setTrackContextMDsData(updated);
+    await sSet(SK.trackContextMDs, updated);
+  };
+  const saveTrackMemory = async (trackId, files) => {
+    const updated = { ...trackMemoryData, [trackId]: files };
+    setTrackMemoryData(updated);
+    await sSet(SK.trackMemory, updated);
+  };
 
   const completeOnboard = async ({ context: ctx, contextMD: md, trackOrder: to }) => {
     setContext(ctx); setContextMD(md); setTrackOrder(to);
@@ -1541,7 +1338,7 @@ export default function App() {
   };
 
   const go = (pageId) => {
-    if (pageId === "dashboard" || pageId === "network") {
+    if (pageId === "dashboard" || pageId === "network" || pageId === "profile") {
       setCurrentTrack(null);
       setCurrentModule(null);
       setPage(pageId);
@@ -1625,8 +1422,16 @@ export default function App() {
           trackDocs={trackDocsData[currentTrack.id] || []}
           setTrackDocs={(docs) => { setTrackDocsData(prev => ({ ...prev, [currentTrack.id]: docs })); }}
           saveTrackDocs={(docs) => saveTrackDocs(currentTrack.id, docs)}
-          trackMemory={[]}
-          contextMDs={contextMD ? [{ id: "main", title: "Startup Context", content: contextMD }] : []}
+          trackMemory={trackMemoryData[currentTrack.id] || []}
+          setTrackMemory={(files) => { setTrackMemoryData(prev => ({ ...prev, [currentTrack.id]: files })); }}
+          saveTrackMemory={(files) => saveTrackMemory(currentTrack.id, files)}
+          contextMDs={[
+            ...(contextMD ? [{ id: "main", title: "Startup Context", content: contextMD }] : []),
+            ...(trackContextMDsData[currentTrack.id] || []),
+          ]}
+          trackContextMDs={trackContextMDsData[currentTrack.id] || []}
+          setTrackContextMDs={(mds) => { setTrackContextMDsData(prev => ({ ...prev, [currentTrack.id]: mds })); }}
+          saveTrackContextMDs={(mds) => saveTrackContextMDs(currentTrack.id, mds)}
         />
       )}
 
@@ -1638,10 +1443,15 @@ export default function App() {
           trackDocs={trackDocsData[currentTrack.id] || []}
           setTrackDocs={(docs) => { setTrackDocsData(prev => ({ ...prev, [currentTrack.id]: docs })); }}
           saveTrackDocs={(docs) => saveTrackDocs(currentTrack.id, docs)}
+          trackContextMDs={trackContextMDsData[currentTrack.id] || []}
+          setTrackContextMDs={(mds) => { setTrackContextMDsData(prev => ({ ...prev, [currentTrack.id]: mds })); }}
+          saveTrackContextMDs={(mds) => saveTrackContextMDs(currentTrack.id, mds)}
         />
       )}
 
       {page === "network" && <NetworkPage />}
+
+      {page === "profile" && <ProfilePage go={go} />}
     </div>
   );
 }

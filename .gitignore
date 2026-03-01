@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Local env and config (API keys)
+.env
+.env.local
+.env.*.local
+src/config.local.js
+
+# Build
+dist/
+
+# Logs and misc
+*.log
+.DS_Store
