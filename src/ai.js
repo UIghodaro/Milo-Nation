@@ -49,11 +49,11 @@ export async function callAI(messages, system) {
 export function mockChat(phase, moduleName) {
   if (phase === "plan")
     return {
-      message: `Great, let's plan your approach to **${moduleName}**.\n\nHere's what I recommend:\n\n**1. Frame your key questions** — What specifically do you need to learn?\n\n**2. Choose your method** — Interviews, surveys, desk research, or a combination.\n\n**3. Set a deadline** — Time-box this to 1–2 weeks maximum.\n\nWant me to help you get started with any of these?`,
+      message: `Let's plan your approach to ${moduleName}.\n\nHere's what I recommend:\n\n1. Frame your key questions — What specifically do you need to learn?\n\n2. Choose your method — Interviews, surveys, desk research, or a combination.\n\n3. Set a deadline — Time-box this to 1 to 2 weeks maximum.\n\nWant me to help you get started with any of these?`,
       suggestions: ["Help me frame key questions", "What methods work best here?", "Create a 2-week plan"],
     };
   return {
-    message: `Let's produce something concrete for **${moduleName}**.\n\nI can help you create:\n\n📋 **Structured brief** — A template with all the right sections\n📊 **Analysis document** — Organize and synthesize your findings\n🎯 **Decision framework** — A clear framework for making decisions\n\nWhich would be most useful right now?`,
+    message: `Let's produce something concrete for ${moduleName}.\n\nI can help you create:\n\nA structured brief — A template with all the right sections\nAn analysis document — Organize and synthesize your findings\nA decision framework — A clear framework for making decisions\n\nWhich would be most useful right now?`,
     suggestions: ["Generate a brief template", "Help me analyze findings", "Create a decision framework"],
   };
 }

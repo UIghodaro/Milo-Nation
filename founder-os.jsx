@@ -616,12 +616,43 @@ function TrackSetupPage({ track, context, onComplete }) {
   );
 }
 
+// Simple inline markdown renderer for the doc viewer modal
+function renderMDContent(text) {
+  const lines = (text || "").split("\n");
+  const result = [];
+  let key = 0;
+  const inlineMD = (str) => {
+    const parts = str.split(/\*\*(.*?)\*\*/g);
+    return parts.map((p, i) => i % 2 === 1 ? <strong key={i}>{p}</strong> : p);
+  };
+  for (const line of lines) {
+    if (line.startsWith("# ")) {
+      result.push(<h1 key={key++} style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: "0 0 10px", fontFamily: F.serif }}>{inlineMD(line.slice(2))}</h1>);
+    } else if (line.startsWith("## ")) {
+      result.push(<h2 key={key++} style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: "14px 0 6px", fontFamily: F.sans }}>{inlineMD(line.slice(3))}</h2>);
+    } else if (line.startsWith("### ")) {
+      result.push(<h3 key={key++} style={{ fontSize: 14, fontWeight: 600, color: C.textDim, margin: "10px 0 4px", fontFamily: F.sans }}>{inlineMD(line.slice(4))}</h3>);
+    } else if (/^[-*] /.test(line)) {
+      result.push(<div key={key++} style={{ display: "flex", gap: 8, margin: "3px 0" }}><span style={{ color: C.blue, flexShrink: 0 }}>•</span><span style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>{inlineMD(line.slice(2))}</span></div>);
+    } else if (/^\d+\.\s/.test(line)) {
+      const num = line.match(/^(\d+)\./)[1];
+      result.push(<div key={key++} style={{ display: "flex", gap: 8, margin: "3px 0" }}><span style={{ color: C.blue, flexShrink: 0 }}>{num}.</span><span style={{ fontSize: 13.5, color: C.text, lineHeight: 1.6 }}>{inlineMD(line.replace(/^\d+\.\s/, ""))}</span></div>);
+    } else if (line.trim() === "") {
+      result.push(<div key={key++} style={{ height: 8 }} />);
+    } else {
+      result.push(<p key={key++} style={{ fontSize: 13.5, color: C.text, lineHeight: 1.65, margin: "2px 0" }}>{inlineMD(line)}</p>);
+    }
+  }
+  return result;
+}
+
 // ═══════════════════════════════════════════════════════════
 // TRACK DASHBOARD
 // ═══════════════════════════════════════════════════════════
 function TrackDashboardPage({ track, context, go, goModule, selectedModules, moduleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackMemory, setTrackMemory, saveTrackMemory, contextMDs, trackContextMDs, setTrackContextMDs, saveTrackContextMDs }) {
   const [editingMD, setEditingMD] = useState(null);
   const [editMDContent, setEditMDContent] = useState("");
+  const [docModal, setDocModal] = useState(null);
   const docsUploadRef = useRef(null);
   const memoryUploadRef = useRef(null);
   const enabledModules = track.modules.filter(m => selectedModules.includes(m.id));
@@ -636,12 +667,7 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
     a.click();
     URL.revokeObjectURL(url);
   };
-  const openDoc = (doc) => {
-    const content = doc.content || doc.text || "";
-    const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  };
+  const openDoc = (doc) => setDocModal(doc);
   const handleDocsUpload = (e) => {
     const file = e.target?.files?.[0];
     if (!file) return;
@@ -678,6 +704,12 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
   const suggestions = [...inProgress, ...notStarted].slice(0, 3);
 
   return (
+    <>
+      <Modal open={!!docModal} onClose={() => setDocModal(null)} title={docModal?.title} wide>
+        <div style={{ fontFamily: F.sans }}>
+          {docModal && renderMDContent(docModal.content || docModal.text || "")}
+        </div>
+      </Modal>
     <div style={{ display: "flex", height: "calc(100vh - 54px)" }}>
       {/* Module Sidebar — small column */}
       <div style={{ width: 220, borderRight: `1px solid ${C.border}`, background: C.card, overflowY: "auto", flexShrink: 0 }}>
@@ -876,6 +908,7 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -939,7 +972,7 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
 
       let res = await callAI(
         [{ role: "user", content: chatIn.trim() }],
-        `You are an expert helping a founder with ${mod.name} in the ${track.name} track. Startup: ${ideaStr}. Customer: ${context?.targetCustomer || "TBD"}. Stage: ${context?.stage || "Idea"}. Phase: ${phase}.${buildInstruction}${ctxBlock}\n\nBe specific, actionable, concise. Respond as JSON: { "message": "your response", "suggestions": ["suggestion1", "suggestion2"] }`
+        `You are an expert helping a founder with ${mod.name} in the ${track.name} track. Startup: ${ideaStr}. Customer: ${context?.targetCustomer || "TBD"}. Stage: ${context?.stage || "Idea"}. Phase: ${phase}.${buildInstruction}${ctxBlock}\n\nBe specific, actionable, concise. Write in plain prose — no markdown syntax (no asterisks for bold, no # for headers, no leading dashes for bullets). Use line breaks to separate thoughts. Respond as JSON: { "message": "your response", "suggestions": ["suggestion1", "suggestion2"] }`
       );
       if (!res?.message) res = mockChat(phase, mod.name);
       setChat(prev => [...prev, { role: "assistant", content: res.message }]);
