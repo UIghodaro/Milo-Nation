@@ -9,9 +9,20 @@ With the aim of "Building a tool to aid with creating startups that face uncerta
 
 **Prerequisites:**
 
-1. Clone the repository and navigate to the project root:
+1. Clone the repository and navigate to the project root, then run:
    ```bash
+      npm install
+      node server.js
    ```
+
+2. Open a new terminal before navigating to the project root again, then run:
+   ```bash 
+      npm run dev
+   ```
+
+3. Open the localhost link provided, then after onboarding go to profile and upload your anthropic API key
+
+4. Begin using the rest of the application
 
 ---
 
