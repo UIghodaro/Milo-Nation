@@ -649,7 +649,7 @@ function renderMDContent(text) {
 // ═══════════════════════════════════════════════════════════
 // TRACK DASHBOARD
 // ═══════════════════════════════════════════════════════════
-function TrackDashboardPage({ track, context, go, goModule, selectedModules, moduleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackMemory, setTrackMemory, saveTrackMemory, contextMDs, trackContextMDs, setTrackContextMDs, saveTrackContextMDs }) {
+function TrackDashboardPage({ track, context, go, goModule, selectedModules, moduleProgress, trackDocs, setTrackDocs, saveTrackDocs, trackMemory, setTrackMemory, saveTrackMemory, contextMDs, trackContextMDs, setTrackContextMDs, saveTrackContextMDs, saveContextMD }) {
   const [editingMD, setEditingMD] = useState(null);
   const [editMDContent, setEditMDContent] = useState("");
   const [docModal, setDocModal] = useState(null);
@@ -835,12 +835,19 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
                         onChange={e => setEditMDContent(e.target.value)}
                         style={{ width: "100%", minHeight: 180, background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "10px 12px", fontSize: 12, fontFamily: F.mono, color: C.text, lineHeight: 1.6, resize: "vertical", outline: "none" }}
                       />
-                      {md.id !== "main" && setTrackContextMDs && (
-                        <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
-                          <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => { const updated = trackContextMDs.map(m => m.id === md.id ? { ...m, content: editMDContent } : m); setTrackContextMDs(updated); saveTrackContextMDs(updated); setEditingMD(null); }}>Save</button>
-                          <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => setEditingMD(null)}>Cancel</button>
-                        </div>
-                      )}
+                      <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                        <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => {
+                          if (md.id === "main") {
+                            saveContextMD && saveContextMD(editMDContent);
+                          } else if (setTrackContextMDs) {
+                            const updated = trackContextMDs.map(m => m.id === md.id ? { ...m, content: editMDContent } : m);
+                            setTrackContextMDs(updated);
+                            saveTrackContextMDs(updated);
+                          }
+                          setEditingMD(null);
+                        }}>Save</button>
+                        <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => setEditingMD(null)}>Cancel</button>
+                      </div>
                     </>
                   ) : (
                     <div style={{ fontSize: 12, color: C.textDim, marginTop: 2, lineHeight: 1.5, maxHeight: 80, overflow: "hidden" }}>{md.content?.substring(0, 120)}...</div>
@@ -859,28 +866,29 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
               const cx = size / 2, cy = size / 2;
               const outerR = size / 2 - 10;
               const innerR = outerR - 22;
-              const gap = n > 1 ? 0.08 : 0;
-              const segAngle = (2 * Math.PI) / n;
+              const midR = (outerR + innerR) / 2;
+              const strokeW = outerR - innerR;
               const p2c = (angle, r) => ({
                 x: cx + r * Math.cos(angle - Math.PI / 2),
                 y: cy + r * Math.sin(angle - Math.PI / 2),
               });
               const f = v => parseFloat(v.toFixed(4));
+              // 340° ring with a 20° gap at the bottom; start just right of 6-o'clock
+              const startA = (190 * Math.PI) / 180;
+              const totalSweep = (340 * Math.PI) / 180;
+              const endA = startA + totalSweep;
+              const progressA = startA + (pct / 100) * totalSweep;
+              const mkArc = (a1, a2) => {
+                const s = p2c(a1, midR), e = p2c(a2, midR);
+                const large = a2 - a1 > Math.PI ? 1 : 0;
+                return `M ${f(s.x)} ${f(s.y)} A ${midR} ${midR} 0 ${large} 1 ${f(e.x)} ${f(e.y)}`;
+              };
               return (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%" }}>
                   <div style={{ position: "relative", width: size, height: size }}>
                     <svg width={size} height={size}>
-                      {enabledModules.map((mod, i) => {
-                        const startA = i * segAngle + gap / 2;
-                        const endA = (i + 1) * segAngle - gap / 2;
-                        const large = endA - startA > Math.PI ? 1 : 0;
-                        const os = p2c(startA, outerR), oe = p2c(endA, outerR);
-                        const is_ = p2c(startA, innerR), ie = p2c(endA, innerR);
-                        const d = `M ${f(os.x)} ${f(os.y)} A ${outerR} ${outerR} 0 ${large} 1 ${f(oe.x)} ${f(oe.y)} L ${f(ie.x)} ${f(ie.y)} A ${innerR} ${innerR} 0 ${large} 0 ${f(is_.x)} ${f(is_.y)} Z`;
-                        const status = moduleProgress[mod.id]?.status || "not-started";
-                        const fill = status === "done" ? C.success : status === "in-progress" ? C.blue : C.accent + "44";
-                        return <path key={mod.id} d={d} fill={fill} style={{ transition: "fill .3s ease" }} />;
-                      })}
+                      <path d={mkArc(startA, endA)} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={strokeW} strokeLinecap="butt" />
+                      {pct > 0 && <path d={mkArc(startA, progressA)} fill="none" stroke="#ffffff" strokeWidth={strokeW} strokeLinecap="butt" />}
                     </svg>
                     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                       <div style={{ fontSize: 24, fontWeight: 700, fontFamily: F.sans, color: C.text }}>{pct}%</div>
@@ -1607,6 +1615,7 @@ export default function App() {
           trackContextMDs={trackContextMDsData[currentTrack.id] || []}
           setTrackContextMDs={(mds) => { setTrackContextMDsData(prev => ({ ...prev, [currentTrack.id]: mds })); }}
           saveTrackContextMDs={(mds) => saveTrackContextMDs(currentTrack.id, mds)}
+          saveContextMD={async (content) => { setContextMD(content); await sSet(SK.contextMD, content); }}
         />
       )}
 
