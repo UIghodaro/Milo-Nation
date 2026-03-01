@@ -818,22 +818,60 @@ function TrackDashboardPage({ track, context, go, goModule, selectedModules, mod
             )}
           </div>
 
-          <div className="card fade-up" style={{ padding: "16px 18px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div className="label">TRACK MEMORY</div>
-              <input type="file" ref={memoryUploadRef} accept=".md,.txt,text/*" style={{ display: "none" }} onChange={handleMemoryUpload} />
-              <button className="btn-outline" style={{ fontSize: 11, padding: "3px 8px" }} onClick={() => memoryUploadRef.current?.click()}>+ Upload</button>
-            </div>
-            {trackMemory.length === 0 ? (
-              <div style={{ padding: "16px 0", textAlign: "center", color: C.textMuted, fontSize: 13 }}>No files uploaded yet.</div>
-            ) : (
-              trackMemory.map(f => (
-                <div key={f.id} style={{ padding: "8px 10px", background: C.bg, borderRadius: 6, border: `1px solid ${C.border}`, marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 13, color: C.text }}>{f.name}</div>
-                  <button className="btn-ghost" onClick={() => { const updated = trackMemory.filter(x => x.id !== f.id); setTrackMemory(updated); saveTrackMemory(updated); }} style={{ fontSize: 11, color: C.danger }}>✕</button>
+          <div className="card fade-up" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div className="label" style={{ marginBottom: 14, alignSelf: "flex-start" }}>MODULE PROGRESS</div>
+            {(() => {
+              const n = enabledModules.length;
+              if (n === 0) return <div style={{ padding: "16px 0", textAlign: "center", color: C.textMuted, fontSize: 13 }}>No modules selected.</div>;
+              const size = 150;
+              const cx = size / 2, cy = size / 2;
+              const outerR = size / 2 - 10;
+              const innerR = outerR - 22;
+              const gap = n > 1 ? 0.08 : 0;
+              const segAngle = (2 * Math.PI) / n;
+              const p2c = (angle, r) => ({
+                x: cx + r * Math.cos(angle - Math.PI / 2),
+                y: cy + r * Math.sin(angle - Math.PI / 2),
+              });
+              const f = v => parseFloat(v.toFixed(4));
+              return (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14, width: "100%" }}>
+                  <div style={{ position: "relative", width: size, height: size }}>
+                    <svg width={size} height={size}>
+                      {enabledModules.map((mod, i) => {
+                        const startA = i * segAngle + gap / 2;
+                        const endA = (i + 1) * segAngle - gap / 2;
+                        const large = endA - startA > Math.PI ? 1 : 0;
+                        const os = p2c(startA, outerR), oe = p2c(endA, outerR);
+                        const is_ = p2c(startA, innerR), ie = p2c(endA, innerR);
+                        const d = `M ${f(os.x)} ${f(os.y)} A ${outerR} ${outerR} 0 ${large} 1 ${f(oe.x)} ${f(oe.y)} L ${f(ie.x)} ${f(ie.y)} A ${innerR} ${innerR} 0 ${large} 0 ${f(is_.x)} ${f(is_.y)} Z`;
+                        const status = moduleProgress[mod.id]?.status || "not-started";
+                        const fill = status === "done" ? C.success : status === "in-progress" ? C.blue : C.accent + "44";
+                        return <path key={mod.id} d={d} fill={fill} style={{ transition: "fill .3s ease" }} />;
+                      })}
+                    </svg>
+                    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ fontSize: 24, fontWeight: 700, fontFamily: F.sans, color: C.text }}>{pct}%</div>
+                      <div style={{ fontSize: 11, color: C.textMuted }}>{doneMods}/{totalMods}</div>
+                    </div>
+                  </div>
+                  <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 5 }}>
+                    {enabledModules.map(mod => {
+                      const status = moduleProgress[mod.id]?.status || "not-started";
+                      const dotColor = status === "done" ? C.success : status === "in-progress" ? C.blue : C.border;
+                      return (
+                        <div key={mod.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
+                          <div style={{ fontSize: 11.5, color: status === "done" ? C.textDim : C.text, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{mod.name}</div>
+                          {status === "done" && <span style={{ fontSize: 10, color: C.success }}>✓</span>}
+                          {status === "in-progress" && <span style={{ fontSize: 10, color: C.blue }}>···</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))
-            )}
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -851,6 +889,7 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
   const [chatLoad, setChatLoad] = useState(false);
   const [outputs, setOutputs] = useState({ plan: [], build: [] });
   const [generatingMD, setGeneratingMD] = useState(false);
+  const [expertMD, setExpertMD] = useState("");
   const [showToast, toastEl] = useToast();
   const chatEnd = useRef(null);
   const chatContainerRef = useRef(null);
@@ -860,6 +899,14 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chat, chatLoad]);
+
+  // Fetch expert MD content from backend for this module
+  useEffect(() => {
+    fetch(`/api/expert/${track.id}/${mod.id}`)
+      .then(r => r.ok ? r.text() : "")
+      .then(text => { if (text) setExpertMD(text); })
+      .catch(() => {});
+  }, [track.id, mod.id]);
 
   const sendChat = async () => {
     if (!chatIn.trim() || chatLoad) return;
@@ -879,9 +926,20 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
       const buildInstruction = phase === "build"
         ? " When in Build phase, always produce a structured deliverable document in your response. Format it with clear headings and sections that can be saved as documentation."
         : "";
+
+      // Build enriched context block from track context files and expert guidance
+      const ctxSections = [];
+      if (trackContextMDs?.length) {
+        ctxSections.push("=== Founder's Track Context ===\n" + trackContextMDs.map(c => `**${c.title}**\n${c.content}`).join("\n\n"));
+      }
+      if (expertMD) {
+        ctxSections.push("=== Expert Guidance for this Module ===\n" + expertMD);
+      }
+      const ctxBlock = ctxSections.length ? "\n\n" + ctxSections.join("\n\n") : "";
+
       let res = await callAI(
         [{ role: "user", content: chatIn.trim() }],
-        `You are an expert helping a founder with ${mod.name} in the ${track.name} track. Startup: ${ideaStr}. Customer: ${context?.targetCustomer || "TBD"}. Stage: ${context?.stage || "Idea"}. Phase: ${phase}.${buildInstruction} Be specific, actionable, concise. Respond as JSON: { "message": "your response", "suggestions": ["suggestion1", "suggestion2"] }`
+        `You are an expert helping a founder with ${mod.name} in the ${track.name} track. Startup: ${ideaStr}. Customer: ${context?.targetCustomer || "TBD"}. Stage: ${context?.stage || "Idea"}. Phase: ${phase}.${buildInstruction}${ctxBlock}\n\nBe specific, actionable, concise. Respond as JSON: { "message": "your response", "suggestions": ["suggestion1", "suggestion2"] }`
       );
       if (!res?.message) res = mockChat(phase, mod.name);
       setChat(prev => [...prev, { role: "assistant", content: res.message }]);
@@ -1104,8 +1162,10 @@ function ModuleChatPage({ track, module: mod, context, go, goBack, moduleProgres
           <div style={{ borderTop: `1px solid ${C.border}`, padding: "10px 18px", flexShrink: 0 }}>
             <button className="btn btn-outline" onClick={() => {
               const lastAssistant = [...chat].reverse().find(m => m.role === "assistant");
-              if (lastAssistant) addOutput(lastAssistant.content);
-              else showToast("No AI response to save", "warn");
+              if (lastAssistant) {
+                const output = { id: Date.now().toString(), text: lastAssistant.content, type: phase, created: Date.now(), title: `${mod.name} — ${phase === "plan" ? "Plan" : "Build"} output` };
+                saveOutputToTrack(output);
+              } else showToast("No AI response to save", "warn");
             }} style={{ width: "100%", justifyContent: "center", fontSize: 13 }}>
               📥 Save last response as output
             </button>
@@ -1240,11 +1300,33 @@ function NetworkPage() {
 // PROFILE PAGE
 // ═══════════════════════════════════════════════════════════
 function ProfilePage({ go }) {
+  const [apiKey, setApiKey] = useState(() => {
+    try { return localStorage.getItem("fos-api-key") || ""; } catch { return ""; }
+  });
+  const [keySaved, setKeySaved] = useState(false);
+
+  const saveKey = () => {
+    try { localStorage.setItem("fos-api-key", apiKey.trim()); } catch {}
+    setKeySaved(true);
+    setTimeout(() => setKeySaved(false), 2500);
+  };
+
+  const clearKey = () => {
+    try { localStorage.removeItem("fos-api-key"); } catch {}
+    setApiKey("");
+    setKeySaved(false);
+  };
+
+  const hasKey = apiKey.trim().length > 0;
+  const keyStored = (() => { try { return !!localStorage.getItem("fos-api-key"); } catch { return false; } })();
+
   return (
-    <div style={{ maxWidth: 1340, margin: "0 auto", padding: "28px" }}>
-      <h1 className="serif" style={{ fontSize: 34, fontWeight: 400 }}>Profile</h1>
-      <p style={{ color: C.textDim, fontSize: 14, marginTop: 4 }}>Your founder profile and settings.</p>
-      <div className="card fade-up" style={{ marginTop: 24, padding: 28 }}>
+    <div style={{ maxWidth: 680, margin: "0 auto", padding: "28px" }}>
+      <h1 className="serif" style={{ fontSize: 34, fontWeight: 400 }}>Profile & Settings</h1>
+      <p style={{ color: C.textDim, fontSize: 14, marginTop: 4 }}>Your founder profile and API configuration.</p>
+
+      {/* Profile card */}
+      <div className="card fade-up" style={{ marginTop: 24, padding: 28, marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: C.card, border: `2px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
@@ -1254,10 +1336,58 @@ function ProfilePage({ go }) {
             <div style={{ fontSize: 13, color: C.textMuted, marginTop: 2 }}>Complete your profile to appear in Network search.</div>
           </div>
         </div>
-        <div style={{ marginTop: 24 }}>
-          <button className="btn btn-outline" onClick={() => go("dashboard")}>Back to Roadmap</button>
-        </div>
       </div>
+
+      {/* API Key card */}
+      <div className="card fade-up" style={{ padding: 28, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: C.text }}>Anthropic API Key</div>
+          {keyStored && <Badge text="Saved" variant="done" small />}
+        </div>
+        <p style={{ fontSize: 13, color: C.textDim, lineHeight: 1.6, marginBottom: 18 }}>
+          Enter your key to enable Claude-powered chat across all modules. Get a key from{" "}
+          <span style={{ color: C.blue }}>console.anthropic.com</span>.
+          Your key is stored locally in your browser and never sent to our servers.
+        </p>
+
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            className="input"
+            type="password"
+            value={apiKey}
+            onChange={e => { setApiKey(e.target.value); setKeySaved(false); }}
+            onKeyDown={e => e.key === "Enter" && saveKey()}
+            placeholder="sk-ant-..."
+            style={{ flex: 1, fontFamily: F.mono, fontSize: 13, letterSpacing: apiKey ? "0.05em" : "normal" }}
+          />
+          <button
+            className="btn btn-primary"
+            onClick={saveKey}
+            disabled={!hasKey}
+            style={{ flexShrink: 0, padding: "9px 18px" }}
+          >
+            {keySaved ? "✓ Saved" : "Save key"}
+          </button>
+          {keyStored && (
+            <button className="btn btn-outline" onClick={clearKey} style={{ flexShrink: 0, padding: "9px 14px", color: C.danger, borderColor: C.danger }}>
+              Clear
+            </button>
+          )}
+        </div>
+
+        {keySaved && (
+          <div style={{ marginTop: 12, fontSize: 13, color: C.success }}>
+            ✓ Key saved — chat is ready to use.
+          </div>
+        )}
+        {!keyStored && (
+          <div style={{ marginTop: 12, fontSize: 12, color: C.textMuted }}>
+            Without a key, the app uses mock responses so you can still explore the UI.
+          </div>
+        )}
+      </div>
+
+      <button className="btn btn-outline" onClick={() => go("dashboard")}>← Back to Roadmap</button>
     </div>
   );
 }
@@ -1373,6 +1503,18 @@ export default function App() {
     setTrackModulesSelected(updatedMods);
     await sSet(SK.trackSetup, updatedSetup);
     await sSet(SK.trackModules, updatedMods);
+
+    // Save track setup context as a context MD file for this track
+    if (result.addContext?.trim()) {
+      const ctxEntry = { id: "setup-context", title: "Track Setup Context", content: result.addContext.trim() };
+      const existing = trackContextMDsData[trackId] || [];
+      // Replace any previous setup-context entry rather than duplicating
+      const filtered = existing.filter(e => e.id !== "setup-context");
+      const updatedMDs = { ...trackContextMDsData, [trackId]: [...filtered, ctxEntry] };
+      setTrackContextMDsData(updatedMDs);
+      await sSet(SK.trackContextMDs, updatedMDs);
+    }
+
     setPage("track-dashboard");
   };
 

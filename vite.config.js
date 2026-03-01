@@ -5,4 +5,9 @@ export default defineConfig({
   plugins: [react()],
   root: ".",
   publicDir: "public",
+  server: {
+    proxy: {
+      "/api": "http://localhost:3001",
+    },
+  },
 });

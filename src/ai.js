@@ -1,8 +1,15 @@
-const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+function getApiKey() {
+  try {
+    const stored = localStorage.getItem("fos-api-key");
+    if (stored?.trim()) return stored.trim();
+  } catch {}
+  return import.meta.env.VITE_ANTHROPIC_API_KEY;
+}
 
 export async function callAI(messages, system) {
-  if (!ANTHROPIC_API_KEY?.trim()) {
-    console.warn("Founder OS: No VITE_ANTHROPIC_API_KEY in .env.local — using mock responses. Copy .env.example to .env.local and add your key.");
+  const key = getApiKey();
+  if (!key?.trim()) {
+    console.warn("Founder OS: No API key found. Go to Profile > Settings to add your Anthropic key, or copy .env.example to .env.local.");
     return null;
   }
   try {
@@ -10,8 +17,9 @@ export async function callAI(messages, system) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
+        "x-api-key": key,
         "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",

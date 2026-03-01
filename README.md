@@ -31,5 +31,3 @@ Founder OS is built around helping founders find the right questions at the righ
 - On Onboarding completion, the user is presented with a roadmap that holds a personalised level of current completion based on their answers
 - The roadmap is structured across 5 fixed tracks with several modules from Foundation & Problem Specification through to Team, Legal & Ops, a full ride of the most important considerations for any startup founder.
 - This is displayed as a visual timeline at the top of the dashboard and serves as the primary navigation layer for the app
-
-
