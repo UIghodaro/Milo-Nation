@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder OS — Module Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --border: #222;
+    --text: #e8e4dc;
+    --muted: #666;
+    --accent: #c8f060;
+
+    --c1: #c8f060; /* Foundation - lime */
+    --c2: #60c8f0; /* Validation - sky */
+    --c3: #f0a060; /* Product & Build - amber */
+    --c4: #a060f0; /* GTM & Revenue - violet */
+    --c5: #f060a0; /* Funding & Story - pink */
+    --c6: #60f0b4; /* Team & Ops - teal */
+    --c7: #f0e060; /* Legal & Finance - yellow */
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 48px 32px;
+  }
+
+  header {
+    max-width: 1100px;
+    margin: 0 auto 56px;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--text);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  .grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2px;
+  }
+
+  .track {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px 24px 32px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .track:hover {
+    border-color: #333;
+    z-index: 1;
+  }
+
+  .track-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .track-num {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+
+  .track-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .track-stage {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    margin-top: 6px;
+    opacity: 0.85;
+  }
+
+  .module {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .module:last-child { border-bottom: none; }
+
+  .module-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .module-body {}
+
+  .module-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .module-name.mvp::after {
+    content: ' ✦';
+    color: var(--accent);
+    font-size: 10px;
+  }
+
+  .module-output {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.5;
+  }
+
+  .legend {
+    max-width: 1100px;
+    margin: 32px auto 0;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Track color theming */
+  .t1 { --tc: var(--c1); }
+  .t2 { --tc: var(--c2); }
+  .t3 { --tc: var(--c3); }
+  .t4 { --tc: var(--c4); }
+  .t5 { --tc: var(--c5); }
+  .t6 { --tc: var(--c6); }
+  .t7 { --tc: var(--c7); }
+
+  .track .track-title { color: var(--tc); }
+  .track .track-stage { background: color-mix(in srgb, var(--tc) 12%, transparent); color: var(--tc); }
+  .track .module-dot { background: var(--tc); }
+  .track-accent-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--tc);
+  }
+
+  .count-badge {
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Founder OS · Module Architecture</p>
+  <h1>Every step a founder<br>needs to take, <em>structured</em>.</h1>
+  <p class="subtitle">7 tracks. 42 modules. From blank page to funded company — covering ideation, validation, product, build, GTM, funding, team, legal, and operations. ✦ marks MVP-priority modules.</p>
+</header>
+
+<div class="grid">
+
+  <!-- TRACK 1: Foundation & Problem -->
+  <div class="track t1">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">01</span>
+      <div>
+        <div class="track-title">Foundation & Problem</div>
+        <span class="track-stage">Pre-idea → Idea</span>
+      </div>
+      <span class="count-badge">6 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name mvp">Founder–Market Fit</div>
+        <div class="module-output">Why you, why this, why now — self-assessment</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name mvp">Problem Definition</div>
+        <div class="module-output">Crisp problem statement + who has it + how acutely</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name mvp">Customer Intelligence ✦</div>
+        <div class="module-output">ICP, JTBD, pain point map, customer profile</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Market Sizing</div>
+        <div class="module-output">TAM / SAM / SOM with sourced assumptions</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Competitive Landscape</div>
+        <div class="module-output">Positioning map, differentiation thesis, moat hypothesis</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Assumption Mapping</div>
+        <div class="module-output">Riskiest assumptions ranked by impact + invalidation plan</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 2: Customer Validation -->
+  <div class="track t2">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">02</span>
+      <div>
+        <div class="track-title">Customer Validation</div>
+        <span class="track-stage">Idea → Validation</span>
+      </div>
+      <span class="count-badge">5 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name mvp">Discovery Interview Guide</div>
+        <div class="module-output">Script, question bank, synthesis framework</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Interview Synthesis</div>
+        <div class="module-output">Pattern extraction, signal vs. noise filter, insight summary</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Willingness to Pay Test</div>
+        <div class="module-output">Pricing conversation scripts, signal thresholds</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Demand Signal Design</div>
+        <div class="module-output">Landing page test, waitlist, pre-order, LOI playbook</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Pivot or Persevere Decision</div>
+        <div class="module-output">Structured framework for reading validation signals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 3: Product Definition -->
+  <div class="track t3">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">03</span>
+      <div>
+        <div class="track-title">Product Definition</div>
+        <span class="track-stage">Validation → Build</span>
+      </div>
+      <span class="count-badge">6 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name mvp">MVP Scoping</div>
+        <div class="module-output">Build / don't build decisions, success criteria, scope lock</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Value Proposition</div>
+        <div class="module-output">One-liner, positioning statement, tagline variants</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">User Story Mapping</div>
+        <div class="module-output">Core user journeys, feature-to-outcome mapping</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Product Roadmap (0→1)</div>
+        <div class="module-output">Phase 0 (MVP) → Phase 1 milestones, prioritisation logic</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Success Metrics Definition</div>
+        <div class="module-output">North Star metric, leading indicators, measurement plan</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Build vs. Buy vs. Partner</div>
+        <div class="module-output">Tech/tooling decision framework for early teams</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 4: MVP Build Process -->
+  <div class="track t3">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">04</span>
+      <div>
+        <div class="track-title">MVP Build Process</div>
+        <span class="track-stage">Build → Launch</span>
+      </div>
+      <span class="count-badge">6 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Tech Stack Selection</div>
+        <div class="module-output">Stack decision guide based on team skills + speed requirements</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">No-Code / Low-Code MVP</div>
+        <div class="module-output">Tool selection, workflow design, when to use vs. build</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Sprint Planning (0→1)</div>
+        <div class="module-output">2-week sprint structure, task breakdown, definition of done</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Design & Prototype</div>
+        <div class="module-output">Wireframing, user testing loop, design handoff checklist</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Beta User Recruitment</div>
+        <div class="module-output">Finding, qualifying, and onboarding your first 10–50 users</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Launch Readiness Checklist</div>
+        <div class="module-output">Pre-launch gate: product, legal, GTM, support minimums</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 5: GTM & Revenue -->
+  <div class="track t4">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">05</span>
+      <div>
+        <div class="track-title">GTM & Revenue</div>
+        <span class="track-stage">Early Traction → Growth</span>
+      </div>
+      <span class="count-badge">7 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">GTM Strategy</div>
+        <div class="module-output">Channel selection, sequencing logic, first 100 customers plan</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Pricing Model</div>
+        <div class="module-output">Model selection (usage / seat / flat), anchoring, packaging</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Early Sales Playbook</div>
+        <div class="module-output">Outreach scripts, demo structure, objection handling</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Content & Community Strategy</div>
+        <div class="module-output">Organic channel plan, distribution channels, ICP-matched content</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Referral & Partnership</div>
+        <div class="module-output">Partner ICP, co-marketing playbook, referral incentive design</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Customer Onboarding & Retention</div>
+        <div class="module-output">First-30-days experience, activation milestones, churn signals</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Growth Loops Mapping</div>
+        <div class="module-output">Identify viral, paid, content, and product loops available to you</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 6: Funding & Storytelling -->
+  <div class="track t5">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">06</span>
+      <div>
+        <div class="track-title">Funding & Storytelling</div>
+        <span class="track-stage">Any stage</span>
+      </div>
+      <span class="count-badge">6 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Funding Strategy</div>
+        <div class="module-output">Bootstrap vs. raise decision, round sizing, dilution model</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Pitch Narrative Builder</div>
+        <div class="module-output">Story arc, slide structure, narrative flow</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Pitch Deck</div>
+        <div class="module-output">Investor-ready deck with critique + iteration loop</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Investor Targeting</div>
+        <div class="module-output">Tiered investor list, thesis matching, warm intro map</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Due Diligence Prep</div>
+        <div class="module-output">Data room checklist, Q&A prep, red flag audit</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Term Sheet Literacy</div>
+        <div class="module-output">Key terms decoded: valuation, pro-rata, board, liquidation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRACK 7: Team, Legal & Ops -->
+  <div class="track t6">
+    <div class="track-accent-bar"></div>
+    <div class="track-header">
+      <span class="track-num">07</span>
+      <div>
+        <div class="track-title">Team, Legal & Ops</div>
+        <span class="track-stage">Parallel track</span>
+      </div>
+      <span class="count-badge">6 modules</span>
+    </div>
+
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Co-founder Agreement</div>
+        <div class="module-output">Equity split, roles, vesting schedule, decision rights</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Company Formation</div>
+        <div class="module-output">Entity type, jurisdiction, cap table setup, IP assignment</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">First Hire Playbook</div>
+        <div class="module-output">When to hire, role scoping, offer structure, equity for employees</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Financial Model</div>
+        <div class="module-output">18-month projection, unit economics, burn & runway calc</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">OKR & Goal Setting</div>
+        <div class="module-output">90-day focus areas, weekly cadence, accountability loop</div>
+      </div>
+    </div>
+    <div class="module">
+      <div class="module-dot"></div>
+      <div class="module-body">
+        <div class="module-name">Investor Reporting</div>
+        <div class="module-output">Monthly update template, metrics dashboard, narrative framing</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot"></div> ✦ marks current MVP-priority modules</div>
+  <div class="legend-item" style="margin-left:auto; color: #444">42 modules · 7 tracks · Founder OS v0.1</div>
+</div>
+
+</body>
+</html>
